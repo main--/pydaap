@@ -1,5 +1,5 @@
 import logging
-import StringIO
+import io
 
 import requests
 
@@ -7,11 +7,11 @@ from .exception import (ConnectionRefused, HTTPError, )
 
 log = logging.getLogger(__name__)
 
-class DaapStringIO(StringIO.StringIO):
+class DaapStringIO(io.BytesIO):
     """Subclass ```StringIO``` to use custom methods on StringIO instances"""
 
     def __init__(self, b):
-        StringIO.StringIO.__init__(self, b)
+        io.BytesIO.__init__(self, b)
 
     def get_data(self, n, start=0):
         """Read n bytes and replace the cursor to ```.tell() - n```"""

@@ -4,31 +4,39 @@ from .reader import DaapNumericReader
 from .request import DaapStringIO
 from .exception import DmapFieldNotFound
 
-
-class DmapFieldType(object):
+class MetaDmapFieldType(type):
     """This class is just a simple enum
     Returns the content type of each instruction
     """
     values = ('DMAP_UNKNOWN', 'DMAP_UINT', 'DMAP_INT', 'DMAP_STR',
               'DMAP_DATA', 'DMAP_DATE', 'DMAP_VERS', 'DMAP_DICT')
 
+    def __getattr__(self, name):
+        return self.values.index(name)
+
+
+class DmapFieldType(object, metaclass=MetaDmapFieldType):
     @classmethod
     def name(cls, idx):
         """Return enum value as string
         """
-        return cls.values[idx] if idx < len(cls.values) else None
-
-    class __metaclass__(type):
-        """Define __getattr__ of metaclass to directly use
-        without an instance"""
-        def __getattr__(self, name):
-            return self.values.index(name)
+        return MetaDmapFieldType.values[idx] if idx < len(MetaDmapFieldType.values) else None
 
 class DmapInstruction(object):
     """Get content type and verbose name of a dmap instruction
     Read ```parse``` method below to understand what is the use.
     """
     data = {
+        'mebs': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.mebs'},
+        'mebp': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.mebp'},
+        'mida': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.mida'},
+        'mdky': {'type': DmapFieldType.DMAP_STR, 'name': 'wtf.mdky'},
+        'mdvl': {'type': DmapFieldType.DMAP_STR, 'name': 'wtf.mdvl'},
+        'aeBA': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.aeBA'},
+        'aeBR': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.aeBR'},
+        'ajLi': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.ajLi'},
+        'ajLr': {'type': DmapFieldType.DMAP_DICT, 'name': 'wtf.ajLr'},
+        
         'abal': {'type': DmapFieldType.DMAP_DICT, 'name': 'daap.browsealbumlisting'},
         'abar': {'type': DmapFieldType.DMAP_DICT, 'name': 'daap.browseartistlisting'},
         'abcp': {'type': DmapFieldType.DMAP_DICT, 'name': 'daap.browsecomposerlisting'},
@@ -372,15 +380,15 @@ class DaapParser(object):
                     if s.isalpha():
                         n = DaapNumericReader.uint32(daap_buffer.get_data(4, 4))
                         if n < length:
-                            instruct['type'] = DmapFieldType.DMAP_DICT
+                            instruction['type'] = DmapFieldType.DMAP_DICT
 
                 # Check if buffer has printable characters only
                 if instruction['type'] == DmapFieldType.DMAP_UNKNOWN:
                     s = daap_buffer.get_data(length)
-                    if all(c in string.printable for c in s):
-                        instruction['type'] = DmapFieldType.DMAP_STR
-                    else:
-                        instruction['type'] = DmapFieldType.DMAP_UINT
+                    #if all(c in string.printable for c in s):
+                    instruction['type'] = DmapFieldType.DMAP_STR
+                    #else:
+                    #    instruction['type'] = DmapFieldType.DMAP_UINT
 
             inst_name, inst_type = instruction['name'], instruction['type']
 
